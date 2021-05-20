@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}
+Detail view of ticket {{ ticket.title }}
+{% endblock %}
+
+{% block content %}
+    <h2>Detail of ticket</h2>
+    <p>{{ ticket.title }}</p>
+    <p>{{ ticket.description }}</p>
+    <p>{{ ticket.created }}</p>
+    <p>{{ ticket.created_by }}</p>
+    <p>{{ ticket.assigned }}</p>
+    <p>{{ ticket.status }}</p>
+    <p>{{ ticket.priority }}</p>
+    <a href="{% url 'edit' ticket.pk %}">Edit</a>
+    <a href="{% url 'delete' ticket.pk %}">Delete</a>
+{% endblock %}
