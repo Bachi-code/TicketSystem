@@ -1,0 +1,7 @@
+A new task {{ ticket.title }} has been assigned to you by {{ ticket.created_by.get_full_name }}
+
+{% autoescape off %}
+Description: {{ ticket.description }}
+{% endautoescape %}
+Ticket url:
+{{ site }}{% url 'detail' pk=ticket.id %}

@@ -14,4 +14,18 @@ Detail view of ticket {{ ticket.title }}
     <p>{{ ticket.priority }}</p>
     <a href="{% url 'edit' ticket.pk %}">Edit</a>
     <a href="{% url 'delete' ticket.pk %}">Delete</a>
+    <h2>Create comment</h2>
+    <form method="post" action="{% url 'comment-create' ticket.pk %}">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Comment</button>
+    </form>
+    <h1>Comments:</h1>
+    {% for comment in comments %}
+        <p>{{ comment.author }}</p>
+        <p>{{ comment.created }}</p>
+        <p>{{ comment.modified }}</p>
+        <p>{{ comment.description }}</p>
+    {% endfor %}
+
 {% endblock %}
