@@ -12,6 +12,17 @@ Detail view of ticket {{ ticket.title }}
     <p>{{ ticket.assigned }}</p>
     <p>{{ ticket.status }}</p>
     <p>{{ ticket.priority }}</p>
+    <a href="{% url 'attachment-create' ticket.pk %}">Upload file</a>
+    {% if attachments %}
+        {% for attachment in attachments %}
+            <a href="{{ attachment.file.url }}" download><p>{{ attachment.filename }}</p></a>
+            <p>{{ attachment.created }}</p>
+            <p>{{ attachment.author }}</p>
+            {% if attachment.author == request.user %}
+                <p><a href="{% url 'attachment-delete' pk=attachment.pk pk2=ticket.pk %}">Delete file</a></p>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
     <a href="{% url 'edit' ticket.pk %}">Edit</a>
     <a href="{% url 'delete' ticket.pk %}">Delete</a>
     <h2>Create comment</h2>
@@ -23,6 +34,10 @@ Detail view of ticket {{ ticket.title }}
     <h1>Comments:</h1>
     {% for comment in comments %}
         <p>{{ comment.author }}</p>
+        {% if comment.author == request.user %}
+                    <a href="{% url 'comment-edit' pk=comment.pk pk2=ticket.pk %}">Update</a>
+                    <a href="{% url 'comment-delete' pk=comment.pk pk2=ticket.pk %}">Delete</a>
+        {% endif %}
         <p>{{ comment.created }}</p>
         <p>{{ comment.modified }}</p>
         <p>{{ comment.description }}</p>

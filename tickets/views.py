@@ -3,8 +3,8 @@ from django.contrib.sites.models import Site
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, get_object_or_404
-from .models import Ticket, Comment
-from .forms import CreateTicket, CreateComment
+from .models import Ticket, Comment, Attachment
+from .forms import CreateTicket, CreateComment, AddAttachment
 from .email import send_mail
 
 
@@ -24,6 +24,7 @@ class TicketDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['comments'] = Comment.objects.filter(ticket_id__exact=self.object.pk)
+        context['attachments'] = Attachment.objects.filter(ticket_id__exact=self.object.pk)
         context['form'] = CreateComment()
         return context
 
@@ -68,7 +69,7 @@ class TicketCreateView(LoginRequiredMixin, CreateView):
 
 class TicketUpdateView(LoginRequiredMixin, UpdateView):
     model = Ticket
-    template_name = "tickets/add.html"
+    template_name = "tickets/edit.html"
     form_class = CreateTicket
 
     def get_queryset(self):
@@ -84,3 +85,55 @@ class TicketDeleteView(LoginRequiredMixin, DeleteView):
     def get_queryset(self):
         qs = super(TicketDeleteView, self).get_queryset()
         return qs.filter(created_by=self.request.user)
+
+
+class CommentDeleteView(LoginRequiredMixin, DeleteView):
+    model = Comment
+    template_name = "comments/delete.html"
+
+    def get_success_url(self):
+        ticket = Ticket.objects.get(pk=self.kwargs['pk2'])
+        return ticket.get_absolute_url()
+
+
+class CommentUpdateView(LoginRequiredMixin, UpdateView):
+    model = Comment
+    template_name = "comments/edit.html"
+    fields = ['description']
+
+    def get_queryset(self):
+        qs = super(CommentUpdateView, self).get_queryset()
+        return qs.filter(author=self.request.user)
+
+    def get_success_url(self):
+        ticket = Ticket.objects.get(pk=self.kwargs['pk2'])
+        return ticket.get_absolute_url()
+
+
+class AttachmentUploadView(LoginRequiredMixin, CreateView):
+    model = Attachment
+    template_name = "attachments/add.html"
+    form_class = AddAttachment
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['ticket'] = get_object_or_404(Ticket, pk=self.kwargs['pk'])
+        return context
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.ticket = get_object_or_404(Ticket, pk=self.kwargs['pk'])
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        ticket = Ticket.objects.get(pk=self.kwargs['pk'])
+        return ticket.get_absolute_url()
+
+
+class AttachmentDeleteView(LoginRequiredMixin, DeleteView):
+    model = Attachment
+    template_name = "attachments/delete.html"
+
+    def get_success_url(self):
+        ticket = Ticket.objects.get(pk=self.kwargs['pk2'])
+        return ticket.get_absolute_url()

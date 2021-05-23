@@ -2,6 +2,11 @@ from django.db import models
 from django.conf import settings
 from django.urls import reverse
 from django.contrib.sites.models import Site
+import os
+
+
+def upload_dir(instance, filename):
+    return 'tickets/{0}/{1}'.format(instance.ticket.id, filename)
 
 
 class Ticket(models.Model):
@@ -51,3 +56,16 @@ class Comment(models.Model):
 
     def __str__(self):
         return 'Comment by {} on {}'.format(self.author.get_full_name(), self.ticket)
+
+
+class Attachment(models.Model):
+    ticket = models.ForeignKey(Ticket, on_delete=models.CASCADE)
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
+    file = models.FileField(upload_to=upload_dir)
+
+    def filename(self):
+        return os.path.basename(self.file.name)
+
+    def __str__(self):
+        return f"{self.ticket.id}-{self.file.name}"

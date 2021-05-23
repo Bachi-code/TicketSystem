@@ -1,5 +1,5 @@
 from django import forms
-from .models import Ticket, Comment
+from .models import Ticket, Comment, Attachment
 
 
 class CreateTicket(forms.ModelForm):
@@ -14,3 +14,10 @@ class CreateComment(forms.ModelForm):
     class Meta:
         model = Comment
         fields = ('description',)
+
+
+class AddAttachment(forms.ModelForm):
+
+    class Meta:
+        model = Attachment
+        fields = ('file',)
