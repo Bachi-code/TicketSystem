@@ -1,4 +1,4 @@
-A task {{ ticket.title }} has been assigned to you by {{ ticket.created_by.get_full_name }}
+Your task {{ ticket.title }} has been assigned to {{ ticket.assigned.get_full_name }} by {{ ticket.created_by.get_full_name }}
 
 {% autoescape off %}
 Description: {{ ticket.description }}

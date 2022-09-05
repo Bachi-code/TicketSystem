@@ -1,0 +1,4 @@
+Task {{ ticket.title }} has new attachment - {{ attachment_name }}
+
+Ticket url:
+{{ site }}{% url 'detail' pk=ticket.id %}

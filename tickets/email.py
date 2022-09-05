@@ -17,7 +17,8 @@ def send_mail(subject, template_name, context, to, bcc=False):
         body=text_contents,
         to=to if not bcc else [],
         bcc=to if bcc else [],
-    )
+        )
+
     if html_contents:
         message.attach_alternative(html_contents, "text/html")
-    message.send()
+    return message.send()

@@ -1,11 +1,13 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.sites.models import Site
+from django.db.models import Q
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, get_object_or_404
 from .models import Ticket, Comment, Attachment
 from .forms import CreateTicket, CreateComment, AddAttachment
-from .email import send_mail
+from .tasks import task_assigned_email, owner_task_assigned_email, update_task_email, new_comment_email,\
+    new_attachment_email
 
 
 class HomePageView(TemplateView):
@@ -35,7 +37,12 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        form.instance.ticket = get_object_or_404(Ticket, pk=self.kwargs['pk'])
+        ticket = get_object_or_404(Ticket, pk=self.kwargs['pk'])
+        form.instance.ticket = ticket
+        self.object = form.save(commit=False)
+        site = Site.objects.get_current().domain
+        comment = form.save()
+        new_comment_email.delay(comment.id, ticket.id, site)
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -55,15 +62,8 @@ class TicketCreateView(LoginRequiredMixin, CreateView):
         self.object = form.save()
         site = Site.objects.get_current().domain
         if ticket.assigned is not None:
-            send_mail(
-                f"Task {ticket} assigned",
-                "assigned",
-                {
-                    "ticket": ticket,
-                    "site": site,
-                },
-                [ticket.assigned.email],
-                )
+            task_assigned_email.delay(ticket.id, site)
+            owner_task_assigned_email.delay(ticket.id, site)
         return super().form_valid(form)
 
 
@@ -74,7 +74,18 @@ class TicketUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_queryset(self):
         qs = super(TicketUpdateView, self).get_queryset()
-        return qs.filter(created_by=self.request.user)
+        return qs.filter(Q(created_by=self.request.user) | Q(assigned=self.request.user))
+
+    def form_valid(self, form):
+        old_ticket = Ticket.objects.get(pk=self.object.pk)
+        new_ticket = form.save(commit=False)
+        site = Site.objects.get_current().domain
+        if new_ticket.assigned != old_ticket.assigned:
+            task_assigned_email.delay(new_ticket.id, site)
+            update_task_email.delay(new_ticket.id, site)
+        else:
+            update_task_email.delay(new_ticket.id, site)
+        return super().form_valid(form)
 
 
 class TicketDeleteView(LoginRequiredMixin, DeleteView):
@@ -122,7 +133,10 @@ class AttachmentUploadView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        form.instance.ticket = get_object_or_404(Ticket, pk=self.kwargs['pk'])
+        ticket = get_object_or_404(Ticket, pk=self.kwargs['pk'])
+        form.instance.ticket = ticket
+        site = Site.objects.get_current().domain
+        new_attachment_email.delay(form.instance.file.name, ticket.id, site)
         return super().form_valid(form)
 
     def get_success_url(self):

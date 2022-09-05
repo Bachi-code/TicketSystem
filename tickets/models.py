@@ -40,6 +40,10 @@ class Ticket(models.Model):
     def __str__(self):
         return self.title
 
+    def get_emails(self):
+        emails = [self.created_by.email, self.assigned.email]
+        return list(set(emails))
+
     def get_absolute_url(self):
         return reverse('detail', kwargs={'pk': self.pk})
 

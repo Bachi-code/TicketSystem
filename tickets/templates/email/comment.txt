@@ -1,0 +1,7 @@
+Task {{ ticket.title }} has new comment by {{ comment.author.get_full_name }}
+
+{% autoescape off %}
+Comment: {{ comment.description }}
+{% endautoescape %}
+Ticket url:
+{{ site }}{% url 'detail' pk=ticket.id %}

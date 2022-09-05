@@ -1,4 +1,4 @@
-A task {{ ticket.title }} has been assigned to you by {{ ticket.created_by.get_full_name }}
+Task {{ ticket.title }} has been updated
 
 {% autoescape off %}
 Description: {{ ticket.description }}
