@@ -8,7 +8,7 @@ from tickets.models import Ticket, Comment, Attachment
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['username', 'email']
+        fields = ['username']
 
 
 class TicketSerializer(serializers.ModelSerializer):

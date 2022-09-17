@@ -1,5 +1,6 @@
 from django.db.models import Q
-from rest_framework import viewsets, mixins
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets, mixins, filters
 from rest_framework import permissions
 from django.contrib.auth import get_user_model
 from django.contrib.sites.models import Site
@@ -18,6 +19,9 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all().order_by('-date_joined')
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['username']
+    ordering_fields = ['username']
 
 
 class TicketViewSet(viewsets.ModelViewSet):
@@ -27,6 +31,9 @@ class TicketViewSet(viewsets.ModelViewSet):
     queryset = Ticket.objects.all()
     serializer_class = TicketSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['title', 'created', 'status', 'priority', 'modified', 'created_by', 'assigned']
+    ordering_fields = ['created']
 
     def perform_create(self, serializer):
         if self.request.data.get('assigned'):
@@ -64,6 +71,9 @@ class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['author', 'created', 'modified']
+    ordering_fields = ['created']
 
     def perform_create(self, serializer):
         ticket = Ticket.objects.get(pk=self.request.data['ticket'])
@@ -83,6 +93,9 @@ class AttachmentViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixi
     queryset = Attachment.objects.all()
     serializer_class = AttachmentSerializer
     permission_classes = [permissions.IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['author', 'created']
+    ordering_fields = ['created']
 
     def pre_save(self, obj):
         obj.file = self.request.FILES.get('file')
