@@ -15,6 +15,7 @@ from tickets.models import Ticket, Comment, Attachment
 TEST_DIR = 'test_data'
 
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class TicketsTestCase(APITestCase, URLPatternsTestCase):
     urlpatterns = [
         path("api/", include("api.urls")),
@@ -133,6 +134,7 @@ class TicketsTestCase(APITestCase, URLPatternsTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class CommentsTestCase(APITestCase, URLPatternsTestCase):
     urlpatterns = [
         path("api/", include("api.urls")),
@@ -220,6 +222,7 @@ class CommentsTestCase(APITestCase, URLPatternsTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
+@override_settings(CELERY_TASK_ALWAYS_EAGER=True)
 class AttachmentsTestCase(APITestCase, URLPatternsTestCase):
     urlpatterns = [
         path("api/", include("api.urls")),

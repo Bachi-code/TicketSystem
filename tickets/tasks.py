@@ -1,12 +1,12 @@
-from celery.decorators import task
 from celery.utils.log import get_task_logger
+from TicketSystem.celery import app
 from .models import Ticket, Comment
 from .email import send_mail
 
 logger = get_task_logger(__name__)
 
 
-@task(name="task_assigned_email")
+@app.task(name="task_assigned_email")
 def task_assigned_email(ticket_id, site):
     ticket = Ticket.objects.get(pk=ticket_id)
     logger.info("Sent assigned email")
@@ -15,7 +15,7 @@ def task_assigned_email(ticket_id, site):
                      [ticket.assigned.email])
 
 
-@task(name="owner_task_assigned_email")
+@app.task(name="owner_task_assigned_email")
 def owner_task_assigned_email(ticket_id, site):
     ticket = Ticket.objects.get(pk=ticket_id)
     logger.info("Sent assigned email")
@@ -24,7 +24,7 @@ def owner_task_assigned_email(ticket_id, site):
                      [ticket.created_by.email])
 
 
-@task(name="update_task_email")
+@app.task(name="update_task_email")
 def update_task_email(ticket_id, site):
     ticket = Ticket.objects.get(pk=ticket_id)
     ticket_emails = ticket.get_emails()
@@ -37,7 +37,7 @@ def update_task_email(ticket_id, site):
                      all_emails)
 
 
-@task(name="new_comment_email")
+@app.task(name="new_comment_email")
 def new_comment_email(comment_id, ticket_id, site):
     ticket = Ticket.objects.get(pk=ticket_id)
     ticket_emails = ticket.get_emails()
@@ -51,7 +51,7 @@ def new_comment_email(comment_id, ticket_id, site):
                      all_emails)
 
 
-@task(name="new_attachment_email")
+@app.task(name="new_attachment_email")
 def new_attachment_email(attachment_name, ticket_id, site):
     ticket = Ticket.objects.get(pk=ticket_id)
     ticket_emails = ticket.get_emails()
