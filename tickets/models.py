@@ -12,9 +12,10 @@ def upload_dir(instance, filename):
 class Ticket(models.Model):
     STATUS = [
         (1, 'Open'),
-        (2, 'Reopened'),
-        (3, 'Solved'),
-        (4, 'Closed'),
+        (2, 'Assigned'),
+        (3, 'New'),
+        (4, 'Solved'),
+        (5, 'Closed'),
         ]
 
     PRIORITY = [
@@ -41,7 +42,10 @@ class Ticket(models.Model):
         return self.title
 
     def get_emails(self):
-        emails = [self.created_by.email, self.assigned.email]
+        if self.assigned:
+            emails = [self.created_by.email, self.assigned.email]
+        else:
+            emails = [self.created_by.email]
         return list(set(emails))
 
     def get_absolute_url(self):

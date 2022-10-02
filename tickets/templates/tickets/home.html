@@ -4,14 +4,12 @@ Homepage
 {% endblock %}
 
 {% block content %}
-
     {% if user.is_authenticated %}
-        <p><a href="{% url 'logout' %}">Logout</a></p>
-        <p><a href="{% url 'password_change' %}">Change password</a></p>
+        <h2>Welcome to the ticket system</h2>
+        <p>To navigate through system use navbar.</p>
     {% else %}
-        <p><a href="{% url 'login' %}">Login</a></p>
-        <p><a href="{% url 'register' %}">Register</a></p>
+        <h2>Welcome to the ticket system</h2>
+        <p>To create or view your tickets if you have an account click <a href="{% url 'login' %}">login</a> first or click
+            <a href="{% url 'register' %}">register</a> to create account</p>
     {% endif %}
-    <p><a href="{% url 'list' %}">List</a></p>
-    <p><a href="{% url 'create' %}">Create ticket</a></p>
 {% endblock %}

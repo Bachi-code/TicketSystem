@@ -1,13 +1,79 @@
 {% extends "base.html" %}
+{% load django_tables2 %}
 {% block title %}
 List of tickets
 {% endblock %}
 
 {% block content %}
-    <h2>Tickets</h2>
-    <ul>
-        {% for ticket in object_list %}
-            <li><a href="{% url 'detail' ticket.pk %}">{{ ticket.title }}</a></li>
-        {% endfor %}
-    </ul>
+    <h2>All tickets</h2>
+    {% if filter %}
+        {% include 'tickets/filters/list_filter.html' with filter=filter %}
+    {% endif %}
+    <div id="tableList">
+        {% render_table table %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        tempusDominus.extend(window.tempusDominus.plugins.fa_five.load);
+        tempusDominus.extend(window.tempusDominus.plugins.customDateFormat);
+
+        const linkedPicker1Element = document.getElementById('linkedPickers1');
+        const linked1 = new tempusDominus.TempusDominus(linkedPicker1Element, {
+            localization: {
+                format: 'yyyy-MM-dd H:mm',
+            },
+        });
+        const linked2 = new tempusDominus.TempusDominus(document.getElementById('linkedPickers2'), {
+            localization: {
+                format: 'yyyy-MM-dd H:mm',
+            },
+            useCurrent: false,
+        });
+
+        linkedPicker1Element.addEventListener(tempusDominus.Namespace.events.change, (e) => {
+            linked2.updateOptions({
+                restrictions: {
+                    minDate: e.detail.date,
+                },
+            });
+        });
+
+        $(".orderable").click(function() {
+            get_table($(this).find("a").attr('href'));
+            return false;
+        });
+
+        $(".page-link").click(function() {
+            get_table($(this).attr('href'));
+            return false;
+        });
+
+        function reload_table(){
+            $(".page-link").click(function() {
+                get_table($(this).attr('href'));
+                return false;
+            });
+            $(".orderable").click(function() {
+                get_table($(this).find("a").attr('href'));
+                return false;
+            });
+        }
+
+        function get_table(url){
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => {
+                return response.json()
+            })
+            .then(data => {
+                $("#tableList").html(data);
+                reload_table();
+            })
+        }
+    </script>
 {% endblock %}

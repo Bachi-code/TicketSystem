@@ -1,11 +1,18 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.sites.models import Site
 from django.db.models import Q
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
-from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.shortcuts import render, get_object_or_404
+from django.views.generic import TemplateView, DetailView, CreateView, UpdateView, DeleteView
+from django.shortcuts import get_object_or_404
+from django_filters.views import FilterView
+from django_tables2.views import SingleTableMixin
+
+from .filters import TicketFilter
 from .models import Ticket, Comment, Attachment
 from .forms import CreateTicket, CreateComment, AddAttachment
+from .tables import TicketsTable
 from .tasks import task_assigned_email, owner_task_assigned_email, update_task_email, new_comment_email,\
     new_attachment_email
 
@@ -14,9 +21,33 @@ class HomePageView(TemplateView):
     template_name = "tickets/home.html"
 
 
-class TicketsListView(LoginRequiredMixin, ListView):
+class TicketsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     model = Ticket
+    table_class = TicketsTable
     template_name = "tickets/list.html"
+    filterset_class = TicketFilter
+
+    def get(self, request, *args, **kwargs):
+        filterset_class = self.get_filterset_class()
+        self.filterset = self.get_filterset(filterset_class)
+
+        if (
+                not self.filterset.is_bound
+                or self.filterset.is_valid()
+                or not self.get_strict()
+        ):
+            self.object_list = self.filterset.qs
+        else:
+            self.object_list = self.filterset.queryset.none()
+
+        context = self.get_context_data(
+            filter=self.filterset, object_list=self.object_list
+            )
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            table = self.get_table(**self.get_table_kwargs())
+            html_table = render_to_string('tickets/tables/list_table.html', {'table': table}, request=request)
+            return JsonResponse(html_table, safe=False)
+        return self.render_to_response(context)
 
 
 class TicketDetailView(LoginRequiredMixin, DetailView):

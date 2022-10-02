@@ -1,0 +1,21 @@
+.bg-yellow {
+    background-color: yellow;
+}
+.table-white
+{
+    background-color: #fff;
+    margin: 2px;
+}
+
+.table {
+    border-collapse: separate;
+    border-spacing:0 10px;
+}
+
+tr {
+    height: 60px;
+}
+
+td {
+    height: 60px;
+}

@@ -1,0 +1,52 @@
+{% load widget_tweaks %}
+<form action="" method="get" class="row border border-3 border-white rounded m-1 p-1">
+    {% for field in filter.form %}
+        {% if forloop.counter == 1 %}
+            <div class="row">
+        {% endif %}
+        {% if field|field_type == 'datetimerangefield' %}
+            <div class="row">
+                <div class="col-lg-8" id="htmlTarget">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <label for="{{ field.auto_id }}1" class="form-label">{{ field.name|capfirst }} after</label>
+                            <div class="input-group log-event" id="linkedPickers1" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                <input id="{{ field.auto_id }}1" name="{{ field.name }}_after" type="text" class="form-control" data-td-target="#linkedPickers1"/>
+                                <span class="input-group-text" data-td-target="#linkedPickers1" data-td-toggle="datetimepicker">
+                                    <span class="bi bi-calendar-fill"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <label for="{{ field.auto_id }}2" class="form-label">{{ field.name|capfirst }} before</label>
+                            <div class="input-group log-event" id="linkedPickers2" data-td-target-input="nearest" data-td-target-toggle="nearest">
+                                <input id="{{ field.auto_id }}2" name="{{ field.name }}_before" type="text" class="form-control" data-td-target="#linkedPickers2"/>
+                                <span class="input-group-text" data-td-target="#linkedPickers2" data-td-toggle="datetimepicker">
+                                    <span class="bi bi-calendar-fill"></span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            {% if field|field_type == 'multiplechoicefield' %}
+                <div class="col-lg-2">
+            {% else %}
+                <div class="col-lg-4">
+            {% endif %}
+                <label for="{{ field.auto_id }}" class="form-label">{{ field.name|capfirst }}</label>
+                {{ field|add_class:"form-control" }}
+            </div>
+        {% if forloop.counter == 3 %}
+            </div>
+        {% endif %}
+        {% endif %}
+    {% endfor %}
+    <div class="row gy-2">
+        <div class="col-auto">
+            <a href="{%  url 'list' %}">Clear filters</a>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </div>
+</form>
