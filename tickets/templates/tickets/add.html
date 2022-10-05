@@ -1,12 +1,9 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 {% block title %}
 Create Ticket
 {% endblock %}
 {% block content %}
-    <h2>Create Ticket</h2>
-<form method="post">
-{% csrf_token %}
-{{ form.as_p }}
-<button type="submit">Create</button>
-</form>
+    <h2 class="border-bottom border-3 pb-3">Create ticket</h2>
+    {% crispy form %}
 {% endblock %}

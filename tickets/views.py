@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.sites.models import Site
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
 from django.template.loader import render_to_string
@@ -56,9 +57,15 @@ class TicketDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['comments'] = Comment.objects.filter(ticket_id__exact=self.object.pk)
-        context['attachments'] = Attachment.objects.filter(ticket_id__exact=self.object.pk)
-        context['form'] = CreateComment()
+        comment_list = Comment.objects.filter(ticket_id__exact=self.object.pk)
+        paginator_comment = Paginator(comment_list, 10)
+        comment_page = self.request.GET.get('comment_page')
+        attachment_list = Attachment.objects.filter(ticket_id__exact=self.object.pk)
+        paginator_attachment = Paginator(attachment_list, 5)
+        attachment_page = self.request.GET.get('attachment_page')
+        context['comments'] = paginator_comment.get_page(comment_page)
+        context['attachments'] = paginator_attachment.get_page(attachment_page)
+        context['form'] = CreateComment(ticket=kwargs.pop('object'))
         return context
 
 
@@ -141,7 +148,7 @@ class CommentDeleteView(LoginRequiredMixin, DeleteView):
 class CommentUpdateView(LoginRequiredMixin, UpdateView):
     model = Comment
     template_name = "comments/edit.html"
-    fields = ['description']
+    form_class = CreateComment
 
     def get_queryset(self):
         qs = super(CommentUpdateView, self).get_queryset()

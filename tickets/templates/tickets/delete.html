@@ -3,11 +3,11 @@
 Delete Ticket
 {% endblock %}
 {% block content %}
-    <h2>Delete Ticket</h2>
-<form method="post">
-{% csrf_token %}
-<p>Are you sure you want to delete "{{ object }}"?</p>
-    <input type="submit" value="Confirm">
-    <a href="{% url 'detail' object.pk %}">Cancel</a>
-</form>
+    <h2 class="border-bottom border-3 pb-3">Delete Ticket</h2>
+    <form method="post">
+        {% csrf_token %}
+        <p>Are you sure you want to delete ticket <span class="fw-bold">#{{ object.pk }} - {{ object }}</span>?</p>
+        <input type="submit" value="Confirm" class="btn btn-danger">
+        <a class="btn btn-primary" href="{% url 'detail' object.pk %}">Cancel</a>
+    </form>
 {% endblock %}

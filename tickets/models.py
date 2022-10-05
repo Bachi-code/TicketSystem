@@ -32,7 +32,7 @@ class Ticket(models.Model):
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_by')
     assigned = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, blank=True, null=True, related_name='assigned')
     status = models.PositiveSmallIntegerField(choices=STATUS, default=1,)
-    priority = models.PositiveSmallIntegerField(choices=PRIORITY, default=1,help_text='1 = Highest Priority, 5 = Lowest Priority')
+    priority = models.PositiveSmallIntegerField(choices=PRIORITY, default=1, help_text='1 = Highest Priority, 5 = Lowest Priority')
     modified = models.DateTimeField(auto_now=True)
 
     class Meta:

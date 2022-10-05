@@ -1,46 +1,168 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
+{% load humanize %}
+{% load tickets_tags %}
 {% block title %}
-Detail view of ticket {{ ticket.title }}
+Ticket #{{ ticket.pk }} - {{ ticket.title }}
 {% endblock %}
 
 {% block content %}
-    <h2>Detail of ticket</h2>
-    <p>{{ ticket.title }}</p>
-    <p>{{ ticket.description }}</p>
-    <p>{{ ticket.created }}</p>
-    <p>{{ ticket.created_by }}</p>
-    <p>{{ ticket.assigned }}</p>
-    <p>{{ ticket.status }}</p>
-    <p>{{ ticket.priority }}</p>
-    <a href="{% url 'attachment-create' ticket.pk %}">Upload file</a>
+    <h2 class="border-bottom border-3 pb-3">Ticket #{{ ticket.pk }} - {{ ticket.title }}</h2>
+    <div class="row">
+        <div class="col-lg-8 col-10 m-3 p-3 border border-2 rounded bg-white">
+            <p class="fw-bold fs-5">Description:</p>
+            {{ ticket.description }}
+        </div>
+        <div class="col-lg-3 col-10 m-3 p-3 border border-2 rounded bg-white">
+            <p class="fw-bold mb-1 fs-5">Created at:</p>
+                <p class="m-0">{{ ticket.created|date:"Y-m-d H:i" }}</p>
+            <p class="fw-bold mb-1 fs-5">Modified at:</p>
+                <p class="m-0">{{ ticket.modified|date:"Y-m-d H:i" }}</p>
+            <p class="fw-bold mb-1 fs-5">Author:</p>
+                <p class="m-0">{{ ticket.created_by }}</p>
+            <p class="fw-bold mb-1 fs-5">Assigned to:</p>
+                <p class="m-0">{{ ticket.assigned|default_if_none:"Not assigned" }}</p>
+            <p class="fw-bold mb-1 fs-5">Status:</p>
+                {{ ticket|badge_status }}
+            <p class="fw-bold mb-1 fs-5">Priority:</p>
+                {{ ticket|badge_priority }}
+        </div>
+    </div>
+    <div class="d-grid gap-2 d-md-block col-8 m-2">
+        <a class="btn btn-primary" href="{% url 'attachment-create' ticket.pk %}">Upload attachment</a>
+        <a class="btn btn-primary" href="{% url 'edit' ticket.pk %}">Edit</a>
+        <a class="btn btn-danger" href="{% url 'delete' ticket.pk %}">Delete</a>
+    </div>
     {% if attachments %}
-        {% for attachment in attachments %}
-            <a href="{{ attachment.file.url }}" download><p>{{ attachment.filename }}</p></a>
-            <p>{{ attachment.created }}</p>
-            <p>{{ attachment.author }}</p>
-            {% if attachment.author == request.user %}
-                <p><a href="{% url 'attachment-delete' pk=attachment.pk pk2=ticket.pk %}">Delete file</a></p>
+        <div class="row mt-3 d-flex justify-content-center">
+        <div class="col-md-12 col-lg-8">
+            <div class="card border m-1 border-2 rounded bg-white text-dark">
+            <h4 class="p-4 mb-0">Attachments</h4>
+            {% for attachment in attachments %}
+                <div class="card-body p-4">
+                    <div class="d-flex flex-start">
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ attachment.author }}</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <p class="mb-0">
+                                {{ attachment.created|naturaltime }}
+                                </p>
+                                {% if attachment.author == request.user %}
+                                    <a class="link-danger" href="{% url 'attachment-delete' pk=attachment.pk pk2=ticket.pk %}"><i class="bi bi-trash3-fill ms-2"></i></a>
+                                {% endif %}
+                            </div>
+                            <p class="mb-0">
+                                <a href="{{ attachment.file.url }}" download>{{ attachment.filename }}</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <hr class="my-0" />
+            {% endfor %}
+            {% if attachments.number and attachments.paginator.num_pages > 1 %}
+            <nav aria-label="Table navigation">
+                <ul class="pagination justify-content-center m-2">
+                {% if attachments.has_previous %}
+                    <li class="previous page-item">
+                        <a href="?attachment_page={{ attachments.previous_page_number }}{% if request.GET.comment_page %}&comment_page={{ request.GET.comment_page }}{% endif %}" class="page-link">
+                            <span aria-hidden="true">&laquo;</span>
+                            previous
+                        </a>
+                    </li>
+                {% endif %}
+                {% if attachments.has_previous or attachments.has_next %}
+                {% for p in attachments.paginator.page_range %}
+                    <li class="page-item{% if attachments.number == p %} active{% endif %}">
+                        <a class="page-link" {% if p != '...' %}href="?attachment_page={{ p }}{% if request.GET.comment_page %}&comment_page={{ request.GET.comment_page }}{% endif %}"{% endif %}>
+                            {{ p }}
+                        </a>
+                    </li>
+                {% endfor %}
+                {% endif %}
+                {% if attachments.has_next %}
+                    <li class="next page-item">
+                        <a href="?attachment_page={{ attachments.next_page_number }}{% if request.GET.comment_page %}&comment_page={{ request.GET.comment_page }}{% endif %}" class="page-link">
+                            next
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                </ul>
+            </nav>
             {% endif %}
-        {% endfor %}
+            </div>
+        </div>
+    </div>
     {% endif %}
-    <a href="{% url 'edit' ticket.pk %}">Edit</a>
-    <a href="{% url 'delete' ticket.pk %}">Delete</a>
-    <h2>Create comment</h2>
-    <form method="post" action="{% url 'comment-create' ticket.pk %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Comment</button>
-    </form>
-    <h1>Comments:</h1>
-    {% for comment in comments %}
-        <p>{{ comment.author }}</p>
-        {% if comment.author == request.user %}
-                    <a href="{% url 'comment-edit' pk=comment.pk pk2=ticket.pk %}">Update</a>
-                    <a href="{% url 'comment-delete' pk=comment.pk pk2=ticket.pk %}">Delete</a>
-        {% endif %}
-        <p>{{ comment.created }}</p>
-        <p>{{ comment.modified }}</p>
-        <p>{{ comment.description }}</p>
-    {% endfor %}
+    <div class="row mt-3 d-flex justify-content-center">
+        <div class="col-md-12 col-lg-8">
+            <div class="card border m-1 border-2 rounded bg-white text-dark">
+            <h4 class="pt-4 px-4">Create comment</h4>
+            {% crispy form %}
+            <h4 class="p-4 mb-0">Recent comments</h4>
+            {% for comment in comments %}
+                <div class="card-body p-4">
+                    <div class="d-flex flex-start">
+                        <div>
+                            <h6 class="fw-bold mb-1">{{ comment.author }}</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                {% if comment.modified != comment.created %}
+                                    <p class="mb-0">
+                                        {{ comment.modified|naturaltime }} <span class="text-muted">(edited)</span>
+                                    </p>
+                                {% else %}
+                                    <p class="mb-0">
+                                    {{ comment.created|naturaltime }}
+                                    </p>
+                                {% endif %}
+                                {% if comment.author == request.user %}
+                                    <a href="{% url 'comment-edit' pk=comment.pk pk2=ticket.pk %}"><i class="bi bi-pencil-fill ms-2"></i></a>
+                                    <a class="link-danger" href="{% url 'comment-delete' pk=comment.pk pk2=ticket.pk %}"><i class="bi bi-trash3-fill ms-2"></i></a>
+                                {% endif %}
+                            </div>
+                            <p class="mb-0">
+                                {{ comment.description }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <hr class="my-0" />
+            {% empty %}
+                <p class="p-4">There are no comments.</p>
+            {% endfor %}
+            {% if comments.number and comments.paginator.num_pages > 1 %}
+            <nav aria-label="Table navigation">
+                <ul class="pagination justify-content-center m-2">
+                {% if comments.has_previous %}
+                    <li class="previous page-item">
+                        <a href="?comment_page={{ comments.previous_page_number }}{% if request.GET.attachment_page %}&attachment_page={{ request.GET.attachment_page }}{% endif %}" class="page-link">
+                            <span aria-hidden="true">&laquo;</span>
+                            previous
+                        </a>
+                    </li>
+                {% endif %}
+                {% if comments.has_previous or comments.has_next %}
+                {% for p in comments.paginator.page_range %}
+                    <li class="page-item{% if comments.number == p %} active{% endif %}">
+                        <a class="page-link" {% if p != '...' %}href="?comment_page={{ p }}{% if request.GET.attachment_page %}&attachment_page={{ request.GET.attachment_page }}{% endif %}"{% endif %}>
+                            {{ p }}
+                        </a>
+                    </li>
+                {% endfor %}
+                {% endif %}
+                {% if comments.has_next %}
+                    <li class="next page-item">
+                        <a href="?comment_page={{ comments.next_page_number }}{% if request.GET.attachment_page %}&attachment_page={{ request.GET.attachment_page }}{% endif %}" class="page-link">
+                            next
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            </div>
+        </div>
+    </div>
 
 {% endblock %}

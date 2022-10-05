@@ -3,11 +3,11 @@
 Delete attachment
 {% endblock %}
 {% block content %}
-    <h2>Delete attachment</h2>
-<form method="post">
-{% csrf_token %}
-<p>Are you sure you want to delete file "{{ object.filename }}"?</p>
-    <input type="submit" value="Confirm">
-    <a href="{% url 'detail' object.ticket.pk %}">Cancel</a>
-</form>
+        <h2 class="border-bottom border-3 pb-3">Delete attachment</h2>
+    <form method="post">
+        {% csrf_token %}
+        <p>Are you sure you want to delete file <span class="fw-bold">{{ object.filename }}</span> from ticket <span>#{{ object.ticket.pk }}</span>?</p>
+        <input type="submit" value="Confirm" class="btn btn-danger">
+        <a class="btn btn-primary" href="{% url 'detail' object.ticket.pk %}">Cancel</a>
+    </form>
 {% endblock %}

@@ -1,13 +1,9 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags %}
 {% block title %}
     Edit comment
 {% endblock %}
 {% block content %}
-    <h2>Edit comment</h2>
-<form method="post">
-{% csrf_token %}
-{{ form.as_p }}
-<button type="submit">Edit</button>
-<a href="{% url 'detail' object.ticket.pk %}">Cancel</a>
-</form>
+    <h2 class="border-bottom border-3 pb-3">Edit comment of ticket #{{ object.ticket.pk }} - {{ object.ticket }}</h2>
+    {% crispy form %}
 {% endblock %}

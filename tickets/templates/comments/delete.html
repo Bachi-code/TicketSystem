@@ -3,11 +3,11 @@
 Delete comment
 {% endblock %}
 {% block content %}
-    <h2>Delete comment</h2>
-<form method="post">
-{% csrf_token %}
-<p>Are you sure you want to delete "{{ object }}"?</p>
-    <input type="submit" value="Confirm">
-    <a href="{% url 'detail' object.ticket.pk %}">Cancel</a>
-</form>
+    <h2 class="border-bottom border-3 pb-3">Delete comment</h2>
+    <form method="post">
+        {% csrf_token %}
+        <p>Are you sure you want to delete comment <span class="fw-bold">{{ object.description|truncatewords:4 }}</span> from ticket <span>#{{ object.ticket.pk }}</span>?</p>
+        <input type="submit" value="Confirm" class="btn btn-danger">
+        <a class="btn btn-primary" href="{% url 'detail' object.ticket.pk %}">Cancel</a>
+    </form>
 {% endblock %}
