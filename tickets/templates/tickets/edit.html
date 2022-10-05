@@ -4,6 +4,6 @@
 Edit ticket
 {% endblock %}
 {% block content %}
-    <h2>Edit ticket</h2>
+    <h2 class="border-bottom border-3 pb-3">Edit ticket #{{ object.pk }}</h2>
     {% crispy form %}
 {% endblock %}
