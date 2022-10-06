@@ -5,7 +5,7 @@ List of tickets
 {% endblock %}
 
 {% block content %}
-    <h2>All tickets</h2>
+    <h2 class="border-bottom border-3 pb-3">{% if user_tickets %}My tickets{% else %}All tickets{% endif %}</h2>
     {% if filter %}
         {% include 'tickets/filters/list_filter.html' with filter=filter %}
     {% endif %}

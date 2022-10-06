@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.sites.models import Site
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
@@ -44,6 +45,31 @@ class TicketsListView(LoginRequiredMixin, SingleTableMixin, FilterView):
         context = self.get_context_data(
             filter=self.filterset, object_list=self.object_list
             )
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            table = self.get_table(**self.get_table_kwargs())
+            html_table = render_to_string('tickets/tables/list_table.html', {'table': table}, request=request)
+            return JsonResponse(html_table, safe=False)
+        return self.render_to_response(context)
+
+
+class UserTicketsListView(TicketsListView):
+    def get(self, request, *args, **kwargs):
+        filterset_class = self.get_filterset_class()
+        self.filterset = self.get_filterset(filterset_class)
+
+        if (
+                not self.filterset.is_bound
+                or self.filterset.is_valid()
+                or not self.get_strict()
+        ):
+            self.object_list = self.filterset.qs.filter(created_by=request.user)
+        else:
+            self.object_list = self.filterset.queryset.none()
+
+        context = self.get_context_data(
+            filter=self.filterset, object_list=self.object_list
+            )
+        context['user_tickets'] = True
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             table = self.get_table(**self.get_table_kwargs())
             html_table = render_to_string('tickets/tables/list_table.html', {'table': table}, request=request)
@@ -131,14 +157,22 @@ class TicketDeleteView(LoginRequiredMixin, DeleteView):
     template_name = "tickets/delete.html"
     success_url = reverse_lazy('list')
 
-    def get_queryset(self):
-        qs = super(TicketDeleteView, self).get_queryset()
-        return qs.filter(created_by=self.request.user)
+    def get_object(self, queryset=None):
+        obj = super(TicketDeleteView, self).get_object()
+        if not obj.created_by == self.request.user:
+            raise PermissionDenied()
+        return obj
 
 
 class CommentDeleteView(LoginRequiredMixin, DeleteView):
     model = Comment
     template_name = "comments/delete.html"
+
+    def get_object(self, queryset=None):
+        obj = super(CommentDeleteView, self).get_object()
+        if not obj.author == self.request.user:
+            raise PermissionDenied()
+        return obj
 
     def get_success_url(self):
         ticket = Ticket.objects.get(pk=self.kwargs['pk2'])
@@ -185,6 +219,12 @@ class AttachmentUploadView(LoginRequiredMixin, CreateView):
 class AttachmentDeleteView(LoginRequiredMixin, DeleteView):
     model = Attachment
     template_name = "attachments/delete.html"
+
+    def get_object(self, queryset=None):
+        obj = super(AttachmentDeleteView, self).get_object()
+        if not obj.author == self.request.user:
+            raise PermissionDenied()
+        return obj
 
     def get_success_url(self):
         ticket = Ticket.objects.get(pk=self.kwargs['pk2'])

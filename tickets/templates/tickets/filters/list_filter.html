@@ -45,7 +45,11 @@
     {% endfor %}
     <div class="row gy-2">
         <div class="col-auto">
-            <a href="{%  url 'list' %}">Clear filters</a>
+            {% if user_tickets %}
+                <a href="{% url 'list-user-tickets' %}">Clear filters</a>
+            {% else %}
+                <a href="{% url 'list' %}">Clear filters</a>
+            {% endif %}
             <button type="submit" class="btn btn-primary">Filter</button>
         </div>
     </div>
